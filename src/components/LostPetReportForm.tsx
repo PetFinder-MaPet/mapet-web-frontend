@@ -1,13 +1,22 @@
 import React, { useState, useEffect } from 'react';
 import InputField from './ui/inputField';
-import { MapContainer, TileLayer, Marker, useMap, Popup, useMapEvents} from 'react-leaflet';
-
-
-
+import { MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents } from 'react-leaflet';
 
 type Coordinates = {
   latitude: number;
   longitude: number;
+};
+const reverseGeocode = async (lat: number, lon: number) => {
+  try {
+    const res = await fetch(
+      `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`
+    );
+    const data = await res.json();
+    return data.display_name || "";
+  } catch (err) {
+    console.error("Error al obtener la dirección inversa:", err);
+    return "";
+  }
 };
 
 const LostPetReportForm: React.FC = () => {
@@ -25,6 +34,8 @@ const LostPetReportForm: React.FC = () => {
 
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [geoError, setGeoError] = useState('');
+  const [success, setSuccess] = useState(false);
+
   const colorOptions = ['Negro', 'Blanco', 'Gris', 'Café', 'Amarillo', 'otro'];
 
   useEffect(() => {
@@ -54,43 +65,43 @@ const LostPetReportForm: React.FC = () => {
       setFormData((prev) => ({ ...prev, image: file }));
     }
   };
-  const handleSelectChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-  const { name, value } = e.target;
-  setFormData((prev) => ({ ...prev, [name]: value }));
-};
 
-const handleAddressSearch = async () => {
-  try {
-    const res = await fetch(
-      `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(formData.address)}`
-    );
-    const data = await res.json();
-    if (data.length > 0) {
-      const { lat, lon } = data[0];
-      setFormData({
-        ...formData,
-        coords: {
-          latitude: parseFloat(lat),
-          longitude: parseFloat(lon),
-        },
-      });
-      setGeoError('');
-    } else {
-      setGeoError('Dirección no encontrada.');
+  const handleSelectChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleAddressSearch = async () => {
+    try {
+      const res = await fetch(
+        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(formData.address)}`
+      );
+      const data = await res.json();
+      if (data.length > 0) {
+        const { lat, lon } = data[0];
+        setFormData({
+          ...formData,
+          coords: {
+            latitude: parseFloat(lat),
+            longitude: parseFloat(lon),
+          },
+        });
+        setGeoError('');
+      } else {
+        setGeoError('Dirección no encontrada.');
+      }
+    } catch (err) {
+      setGeoError('Error al buscar la dirección.');
     }
-  } catch (err) {
-    setGeoError('Error al buscar la dirección.');
-  }
-};
+  };
 
   const validate = () => {
     const newErrors: { [key: string]: string } = {};
-    ['name', 'color', 'size', 'weight', 'description', 'date'].forEach((field) => {
+    ['name', 'size', 'weight', 'description', 'date'].forEach((field) => {
       if (!formData[field as keyof typeof formData]) {
         newErrors[field] = 'Este campo es obligatorio';
       }
     });
-    if (!formData.image) newErrors['image'] = 'Debe subir una imagen';
     if (!formData.color || formData.color.length === 0) newErrors['color'] = 'Debe seleccionar al menos un color';
     if (!formData.coords) newErrors['coords'] = 'Ubicación no disponible';
     setErrors(newErrors);
@@ -98,33 +109,80 @@ const handleAddressSearch = async () => {
   };
 
   const LocationMarker = () => {
-    useMapEvents({
-      click(e) {
-        setFormData({
-          ...formData,
-          coords: {
-            latitude: e.latlng.lat,
-            longitude: e.latlng.lng,
-          },
-        });
-      },
-    });
+  useMapEvents({
+    async click(e) {
+      const lat = e.latlng.lat;
+      const lon = e.latlng.lng;
+      const addr = await reverseGeocode(lat, lon);
 
-    return formData.coords ? (
-      <Marker position={[formData.coords.latitude, formData.coords.longitude]}>
-        <Popup>Ubicación seleccionada</Popup>
-      </Marker>
-    ) : null;
-  };
+      setFormData((prev) => ({
+        ...prev,
+        coords: { latitude: lat, longitude: lon },
+        address: addr, // actualiza el campo de dirección
+      }));
+    },
+  });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  return formData.coords ? (
+    <Marker position={[formData.coords.latitude, formData.coords.longitude]}>
+      <Popup>Ubicación seleccionada</Popup>
+    </Marker>
+  ) : null;
+};
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (validate()) {
-      console.log('Enviando reporte...', formData);
-      // Aquí iría el POST al backend
+    setSuccess(false);
+    if (!validate()) return;
+
+     const form = new FormData();
+    form.append("type", "lost");
+    form.append("name", formData.name);
+    form.append("color", formData.color[0]); // O combínalos en un string si el backend lo acepta
+    form.append("approximate_size", formData.size);
+    form.append("approximate_weight_kg", formData.weight);
+    form.append("description", formData.description);
+    form.append("date_time", formData.date);
+    form.append("latitude", String(formData.coords?.latitude ?? 0));
+    form.append("longitude", String(formData.coords?.longitude ?? 0));
+    form.append("reporter_id", "11111111-1111-1111-1111-111111111111");
+    if (formData.image) form.append("image", formData.image);
+   
+
+      try {
+  const res = await fetch(`${import.meta.env.VITE_API_URL}/pet-reports`, {
+    method: "POST",
+    body: form,
+  });
+
+  console.log("✅ Respuesta del backend:", res);
+  const text = await res.text();
+  console.log("✅ Body de respuesta:", text);
+
+  if (!res.ok) {
+    throw new Error("Error al enviar el reporte.");
+  }
+
+  setSuccess(true);
+      setFormData({
+        name: '',
+        color: [],
+        size: '',
+        weight: '',
+        description: '',
+        date: '',
+        image: null,
+        coords: null,
+        address: '',
+      });
+      setErrors({});
+    } catch (err) {
+      console.error(err);
+      setGeoError('Ocurrió un error al enviar el reporte.');
     }
   };
-    function RecenterMap({ coords }: { coords: Coordinates }) {
+
+  function RecenterMap({ coords }: { coords: Coordinates }) {
     const map = useMap();
     useEffect(() => {
       map.setView([coords.latitude, coords.longitude], 16);
@@ -137,6 +195,9 @@ const handleAddressSearch = async () => {
       <form onSubmit={handleSubmit} className="max-w-3xl mx-auto bg-white p-8 rounded-2xl shadow-xl">
         <h2 className="text-3xl font-bold text-blue-800 mb-2">🐾 Reporte de Mascota Perdida</h2>
         <p className="text-gray-600 mb-6">Por favor completa la siguiente información:</p>
+
+        {success && <p className="text-green-600 mb-4">✅ Reporte enviado correctamente.</p>}
+
         <div className="grid grid-cols-1 gap-6">
           <InputField
             label="Nombre de la mascota"
@@ -145,7 +206,7 @@ const handleAddressSearch = async () => {
             onChange={handleChange}
             placeholder="Ej. Firulais"
             error={errors.name}
-          />
+            />
 <div>
   <label className="text-sm font-medium text-gray-700">Color(es)</label>
   <div className="mt-1 grid grid-cols-2 gap-2">
