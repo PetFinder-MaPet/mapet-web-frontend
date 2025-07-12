@@ -13,6 +13,7 @@ const VisualReports = () => {
       .then((response) => response.json())
       .then((data) => {
         console.log("✅ Received reports:", data);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const mapped: Report[] = data.map((r: any) => ({
           id: r.id,
           type: r.type === "lost" ? "Perdida" : "Avistamiento",

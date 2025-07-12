@@ -6,7 +6,7 @@ const Home = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 to-white flex items-center justify-center p-4">
       <div className="bg-white p-10 rounded-2xl shadow-xl text-center space-y-6 max-w-md w-full">
-        <h1 className="text-3xl font-bold text-green-700">🐾 MaPet</h1>
+        <h1 className="text-3xl font-bold text-login -700">🐾 MaPet</h1>
         <p className="text-gray-600 text-sm">¿Qué deseas reportar?</p>
 
         <button
@@ -18,9 +18,16 @@ const Home = () => {
 
         <button
           onClick={() => navigate('/sighted-report')}
-          className="w-full bg-blue-500 hover:bg-blue-600 text-white py-3 rounded-lg text-lg transition"
+          className="w-full bg-green-500 hover:bg-green-600 text-white py-3 rounded-lg text-lg transition"
         >
           Avistamiento
+        </button>
+
+        <button
+          onClick={() => navigate('/login')}
+          className="w-full bg-login -300 hover:bg-login -800 text-white py-3 rounded-lg text-lg transition"
+        >
+          Iniciar sesión
         </button>
       </div>
       <button

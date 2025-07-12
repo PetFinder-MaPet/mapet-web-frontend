@@ -4,6 +4,7 @@ import VisualReports from './pages/VisualReports';
 import MapView from './pages/MapView';
 import LostPetReportForm from './components/LostPetReportForm';
 import SightedPetReportForm from './components/SeenPetReportform';
+import LoginPage from './pages/login';
 
 function App() {
    return (
@@ -14,6 +15,7 @@ function App() {
         <Route path="/map" element={<MapView />} />
         <Route path="/lost-report" element={<LostPetReportForm />} />
         <Route path="/sighted-report" element={<SightedPetReportForm/>} />
+        <Route path="/login" element={<LoginPage />} />
       </Routes>
     </Router>
     
