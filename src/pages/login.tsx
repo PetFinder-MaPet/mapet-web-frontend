@@ -14,7 +14,7 @@ const LoginPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-white relative overflow-hidden">
+    <div className="min-h-screen flex items-center justify-center bg-background relative overflow-hidden">
 
 {/* Triangulo con fondo y triangulo blanco tapandolo */}
 <div className="relative w-0 h-0">
@@ -25,7 +25,7 @@ const LoginPage: React.FC = () => {
   </div>
   <div className="absolute top-[-545px] left-[-405px] w-0 h-0
     border-l-[630px] border-l-transparent
-    border-b-[620px] border-b-white 
+    border-b-[620px] border-b-background
     rotate-[235deg] z-10">
   </div>
 </div>
@@ -42,8 +42,7 @@ const LoginPage: React.FC = () => {
 
 
 
-      <div className="z-10 bg-white shadow-xl rounded-md overflow-hidden w-full max-w-5xl flex flex-col md:flex-row min-h-[500px]">
-        {/* Formulario */}
+<div className="z-10 bg-white rounded-md overflow-hidden w-full max-w-5xl flex flex-col md:flex-row min-h-[500px]" style={{ boxShadow: '0 30px 70px -12px rgba(0, 0, 0, 0.4)' }}>        {/* Formulario */}
         <div className="w-full md:w-1/2 p-10 flex flex-col justify-center">
           <h2 className="text-3xl font-bold text-login-600 mb-2">🐶 MaPet - PetFinder</h2>
           <p className="text-gray-600 mb-8">Inicia sesion para continuar</p>
