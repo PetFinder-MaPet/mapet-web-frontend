@@ -36,7 +36,7 @@ const VisualReports = () => {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gray-100 py-8 px-4 relative">
+    <div className="pt-20 min-h-screen bg-background-50 px-4">
       <h1 className="text-2xl font-bold text-center mb-6 text-blue-800">
         📋 Reportes recientes
       </h1>
@@ -52,12 +52,6 @@ const VisualReports = () => {
         className="fixed bottom-4 left-4 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-full shadow-md transition"
       >
         Cambiar visualización
-      </button>
-      <button
-        onClick={() => navigate('/')}
-        className="fixed bottom-4 right-4 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-full shadow-md transition"
-      >
-        Reportar
       </button>
     </div>
   );

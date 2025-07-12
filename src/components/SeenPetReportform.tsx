@@ -130,7 +130,7 @@ const SightedPetReportForm: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 py-10 px-4">
+    <div className="pt-20 min-h-screen bg-background-50 px-4">
       <form onSubmit={handleSubmit} className="max-w-3xl mx-auto bg-white p-8 rounded-2xl shadow-xl">
         <h2 className="text-3xl font-bold text-green-800 mb-2">👀 Reporte de Avistamiento</h2>
         <p className="text-gray-600 mb-6">Indica los detalles del animal que avistaste:</p>
