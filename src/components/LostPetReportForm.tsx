@@ -243,10 +243,10 @@ const LostPetReportForm: React.FC = () => {
     className="mt-1 block w-full text-sm border border-gray-300 rounded-lg p-2"
   >
     <option value="">Selecciona un tamaño</option>
-    <option value="mini">Mini</option>
-    <option value="pequeño">Pequeño</option>
-    <option value="mediano">Mediano</option>
-    <option value="grande">Grande</option>
+    <option value="Mini">Mini</option>
+    <option value="Pequeño">Pequeño</option>
+    <option value="Mediano">Mediano</option>
+    <option value="Grande">Grande</option>
   </select>
   {errors.size && <p className="text-xs text-red-500 mt-1">⚠️ {errors.size}</p>}
 </div>
