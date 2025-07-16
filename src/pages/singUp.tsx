@@ -2,6 +2,13 @@ import BackgroundShapes from '@/components/ui/backgroundShapes';
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
+// 🔑 Importa Firebase Auth y Firestore
+import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
+import { auth } from "@/lib/firebase";
+import { getFirestore, doc, setDoc } from "firebase/firestore";
+
+const db = getFirestore();
+
 const RegisterPage: React.FC = () => {
   const [formData, setFormData] = useState({
     fullName: '',
@@ -14,6 +21,7 @@ const RegisterPage: React.FC = () => {
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const navigate = useNavigate();
 
+  // Validación local
   const validate = () => {
     const newErrors: { [key: string]: string } = {};
     if (!formData.fullName) newErrors.fullName = 'Nombre completo requerido';
@@ -31,21 +39,45 @@ const RegisterPage: React.FC = () => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleRegister = (e: React.FormEvent) => {
+  // Registro y guardado en Firebase y Firestore
+  const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     if (validate()) {
-      console.log('Registrando usuario:', formData);
-      // Aquí harás el fetch a la API de registro
-      // navigate('/login') luego del registro exitoso
+      try {
+        // 1. Registro en Auth
+        const userCredential = await createUserWithEmailAndPassword(
+          auth,
+          formData.email,
+          formData.password
+        );
+
+        // 2. Actualiza nombre en perfil Firebase Auth
+        await updateProfile(userCredential.user, {
+          displayName: formData.fullName,
+        });
+
+        // 3. Guarda en Firestore (nombre, email y teléfono)
+        await setDoc(doc(db, "users", userCredential.user.uid), {
+          fullName: formData.fullName,
+          email: formData.email,
+          phone: formData.phone || null, // guarda null si está vacío
+          createdAt: new Date(),
+        });
+
+        // 4. Redirige a login tras registro exitoso
+        navigate('/reports');
+      } catch (error: any) {
+        setErrors({ general: error.message });
+      }
     }
   };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-white relative overflow-hidden">
-      <BackgroundShapes color="blue" backgroundColor="background"/>
+      <BackgroundShapes color="blue" backgroundColor="background" />
 
       {/* Contenido */}
-<div className="z-10 bg-white rounded-md overflow-hidden w-full max-w-5xl flex flex-col md:flex-row min-h-[500px]" style={{ boxShadow: '0 30px 70px -12px rgba(0, 0, 0, 0.4)' }}>        {/* Formulario */}
+      <div className="z-10 bg-white rounded-md overflow-hidden w-full max-w-5xl flex flex-col md:flex-row min-h-[500px]" style={{ boxShadow: '0 30px 70px -12px rgba(0, 0, 0, 0.4)' }}>
         {/* Formulario */}
         <div className="w-full md:w-1/2 p-10 flex flex-col justify-center">
           <h2 className="text-3xl font-bold text-black -600 mb-2">🐶 MaPet - Registrarse</h2>
@@ -107,6 +139,8 @@ const RegisterPage: React.FC = () => {
               Registrarse
             </button>
           </form>
+
+          {errors.general && <p className="text-sm text-red-500">{errors.general}</p>}
 
           <p className="text-sm text-center text-gray-600 mt-4">
             ¿Ya tienes cuenta?{' '}
