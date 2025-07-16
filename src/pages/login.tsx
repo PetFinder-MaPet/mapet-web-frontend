@@ -11,16 +11,18 @@ const LoginPage: React.FC = () => {
   const navigate = useNavigate();
 
   const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError(null);
+  e.preventDefault();
+  setError(null);
 
-    try {
-      await signInWithEmailAndPassword(auth, email, password);
-      navigate('/reports');
-    } catch (err: any) {
-      setError("Credenciales inválidas o error de conexión.");
-    }
-  };
+  try {
+    const userCredential = await signInWithEmailAndPassword(auth, email, password);
+    console.log("Usuario logueado:", auth.currentUser); // Aquí chequeas el usuario actual
+    navigate('/reports');
+  } catch (err: any) {
+    setError("Credenciales inválidas o error de conexión.");
+  }
+};
+
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background relative overflow-hidden">

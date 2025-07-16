@@ -2,13 +2,6 @@ import BackgroundShapes from '@/components/ui/backgroundShapes';
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-// 🔑 Importa Firebase Auth y Firestore
-import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
-import { auth } from "@/lib/firebase";
-import { getFirestore, doc, setDoc } from "firebase/firestore";
-
-const db = getFirestore();
-
 const RegisterPage: React.FC = () => {
   const [formData, setFormData] = useState({
     fullName: '',
@@ -44,28 +37,29 @@ const RegisterPage: React.FC = () => {
     e.preventDefault();
     if (validate()) {
       try {
-        // 1. Registro en Auth
-        const userCredential = await createUserWithEmailAndPassword(
-          auth,
-          formData.email,
-          formData.password
-        );
-
-        // 2. Actualiza nombre en perfil Firebase Auth
-        await updateProfile(userCredential.user, {
-          displayName: formData.fullName,
-        });
-
-        // 3. Guarda en Firestore (nombre, email y teléfono)
-        await setDoc(doc(db, "users", userCredential.user.uid), {
+        const bodyData: any = {
           fullName: formData.fullName,
           email: formData.email,
-          phone: formData.phone || null, // guarda null si está vacío
-          createdAt: new Date(),
+          password: formData.password,
+        };
+
+        if (formData.phone.trim()) {
+          bodyData.phone = formData.phone;
+        }
+
+        const res = await fetch("http://localhost:4000/api/auth/register", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(bodyData),
         });
 
-        // 4. Redirige a login tras registro exitoso
-        navigate('/reports');
+        if (!res.ok) {
+          const errorData = await res.json();
+          throw new Error(errorData.error || "Error registrando usuario");
+        }
+
+        // Registro exitoso: redirigir
+        navigate('/login');
       } catch (error: any) {
         setErrors({ general: error.message });
       }
@@ -76,9 +70,7 @@ const RegisterPage: React.FC = () => {
     <div className="min-h-screen flex items-center justify-center bg-white relative overflow-hidden">
       <BackgroundShapes color="blue" backgroundColor="background" />
 
-      {/* Contenido */}
       <div className="z-10 bg-white rounded-md overflow-hidden w-full max-w-5xl flex flex-col md:flex-row min-h-[500px]" style={{ boxShadow: '0 30px 70px -12px rgba(0, 0, 0, 0.4)' }}>
-        {/* Formulario */}
         <div className="w-full md:w-1/2 p-10 flex flex-col justify-center">
           <h2 className="text-3xl font-bold text-black -600 mb-2">🐶 MaPet - Registrarse</h2>
           <p className="text-gray-600 mb-8">Crea tu cuenta para empezar</p>
@@ -153,7 +145,6 @@ const RegisterPage: React.FC = () => {
           </p>
         </div>
 
-        {/* Imagen */}
         <div
           className="hidden md:block w-1/2 bg-cover bg-center"
           style={{ backgroundImage: "url('src/assets/dog-register.png')" }}
