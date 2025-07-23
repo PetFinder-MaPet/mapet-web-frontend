@@ -8,7 +8,7 @@ export const ReportCard = ({ report }: Props) => {
   const isLost = report.type === 'Perdida';
 
   return (
-    <div className="bg-white rounded-xl shadow-md overflow-hidden w-full max-w-sm">
+    <div className="report-card bg-white rounded-xl shadow-md overflow-hidden w-full max-w-sm">
       <img src={report.imageUrl} alt="Foto mascota" className="w-full h-48 object-cover" />
       <div className="p-4">
         <div className="flex justify-between items-center">
