@@ -1,6 +1,8 @@
 import BackgroundShapes from '@/components/ui/backgroundShapes';
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { getAuth, createUserWithEmailAndPassword } from "firebase/auth";
+import { app } from "../lib/firebase"; // o "./firebase" o "@/firebase", según donde esté tu archivo de config de Firebase
 
 const RegisterPage: React.FC = () => {
   const [formData, setFormData] = useState({
@@ -34,37 +36,49 @@ const RegisterPage: React.FC = () => {
 
   // Registro y guardado en Firebase y Firestore
   const handleRegister = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (validate()) {
-      try {
-        const bodyData: any = {
-          fullName: formData.fullName,
-          email: formData.email,
-          password: formData.password,
-        };
+  e.preventDefault();
+  if (validate()) {
+    try {
+      // 1. Crear usuario en Firebase Auth
+      const auth = getAuth(app);
+      const userCredential = await createUserWithEmailAndPassword(
+        auth,
+        formData.email,
+        formData.password
+      );
 
-        if (formData.phone.trim()) {
-          bodyData.phone = formData.phone;
-        }
+      // 2. Obtener el idToken del usuario recién creado
+      const idToken = await userCredential.user.getIdToken();
 
-        const res = await fetch("http://localhost:4000/api/auth/register", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(bodyData),
-        });
+      // 3. Envía el idToken (y otros campos) al backend
+      const bodyData: any = {
+        idToken, // ¡Esencial!
+        fullName: formData.fullName,
+        email: formData.email,
+      };
 
-        if (!res.ok) {
-          const errorData = await res.json();
-          throw new Error(errorData.error || "Error registrando usuario");
-        }
-
-        // Registro exitoso: redirigir
-        navigate('/login');
-      } catch (error: any) {
-        setErrors({ general: error.message });
+      if (formData.phone.trim()) {
+        bodyData.phone = formData.phone;
       }
+
+      const res = await fetch("http://localhost:4000/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(bodyData),
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.error || "Error registrando usuario");
+      }
+
+      // Registro exitoso: redirigir
+      navigate('/login');
+    } catch (error: any) {
+      setErrors({ general: error.message });
     }
-  };
+  }
+};
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-white relative overflow-hidden">

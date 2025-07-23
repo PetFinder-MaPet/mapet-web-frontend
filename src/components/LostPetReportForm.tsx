@@ -131,56 +131,60 @@ const LostPetReportForm: React.FC = () => {
 };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setSuccess(false);
-    if (!validate()) return;
+  e.preventDefault();
+  setSuccess(false);
+  if (!validate()) return;
 
-     const form = new FormData();
-    form.append("type", "lost");
-    form.append("name", formData.name);
-    form.append("color", formData.color[0]); // O combínalos en un string si el backend lo acepta
-    form.append("approximate_size", formData.size);
-    form.append("approximate_weight_kg", formData.weight);
-    form.append("description", formData.description);
-    form.append("date_time", formData.date);
-    form.append("latitude", String(formData.coords?.latitude ?? 0));
-    form.append("longitude", String(formData.coords?.longitude ?? 0));
-    form.append("reporter_id", "11111111-1111-1111-1111-111111111111");
-    if (formData.image) form.append("image", formData.image);
-   
+  const form = new FormData();
+  form.append("type", "lost");
+  form.append("name", formData.name);
+  form.append("color", formData.color[0]); // Solo uno por ahora
+  form.append("approximate_size", formData.size);
+  form.append("approximate_weight_kg", formData.weight);
+  form.append("description", formData.description);
+  form.append("date_time", formData.date);
+  form.append("latitude", String(formData.coords?.latitude ?? 0));
+  form.append("longitude", String(formData.coords?.longitude ?? 0));
+  if (formData.image) form.append("image", formData.image);
 
-      try {
-  const res = await fetch(`${import.meta.env.VITE_API_URL}/pet-reports`, {
-    method: "POST",
-    body: form,
-  });
+  try {
+    // 🔐 Recuperar el token desde localStorage
+    const token = localStorage.getItem("token");
 
-  console.log("✅ Respuesta del backend:", res);
-  const text = await res.text();
-  console.log("✅ Body de respuesta:", text);
+    const res = await fetch(`${import.meta.env.VITE_API_URL}/pet-reports`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`, // ✅ Token al header
+      },
+      body: form,
+    });
 
-  if (!res.ok) {
-    throw new Error("Error al enviar el reporte.");
-  }
+    console.log("✅ Respuesta del backend:", res);
+    const text = await res.text();
+    console.log("✅ Body de respuesta:", text);
 
-  setSuccess(true);
-      setFormData({
-        name: '',
-        color: [],
-        size: '',
-        weight: '',
-        description: '',
-        date: '',
-        image: null,
-        coords: null,
-        address: '',
-      });
-      setErrors({});
-    } catch (err) {
-      console.error(err);
-      setGeoError('Ocurrió un error al enviar el reporte.');
+    if (!res.ok) {
+      throw new Error("Error al enviar el reporte.");
     }
-  };
+
+    setSuccess(true);
+    setFormData({
+      name: '',
+      color: [],
+      size: '',
+      weight: '',
+      description: '',
+      date: '',
+      image: null,
+      coords: null,
+      address: '',
+    });
+    setErrors({});
+  } catch (err) {
+    console.error(err);
+    setGeoError('Ocurrió un error al enviar el reporte.');
+  }
+};
 
   function RecenterMap({ coords }: { coords: Coordinates }) {
     const map = useMap();

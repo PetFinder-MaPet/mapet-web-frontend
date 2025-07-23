@@ -16,12 +16,22 @@ const LoginPage: React.FC = () => {
 
   try {
     const userCredential = await signInWithEmailAndPassword(auth, email, password);
-    console.log("Usuario logueado:", auth.currentUser); // Aquí chequeas el usuario actual
+    const user = userCredential.user;
+
+    // 🔐 Obtener el token de Firebase
+    const token = await user.getIdToken();
+
+    // ✅ Guardar el token en localStorage para usarlo luego
+    localStorage.setItem("token", token);
+
+    console.log("Token guardado:", token); // Solo para pruebas
+
     navigate('/reports');
   } catch (err: any) {
     setError("Credenciales inválidas o error de conexión.");
   }
 };
+
 
 
   return (
