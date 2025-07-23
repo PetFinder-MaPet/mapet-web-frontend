@@ -3,8 +3,8 @@ export interface PetReport {
   type: string;
   description: string;
   date_time: string;
-  latitude: number;
-  longitude: number;
+  lat: number;
+  lng: number;
   reporter_id: string;
   image_url?: string;
   name?: string;

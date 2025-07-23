@@ -9,25 +9,39 @@ const VisualReports = () => {
 
   useEffect(() => {
     console.log("🌐 Fetching reports from backend...");
-    fetch(`${import.meta.env.VITE_API_URL}/pet-reports`)
+    fetch(`${import.meta.env.VITE_API_URL}/reports`)
       .then((response) => response.json())
       .then((data) => {
         console.log("✅ Received reports:", data);
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const mapped: Report[] = data.map((r: any) => ({
-          id: r.id,
-          type: r.type === "lost" ? "Perdida" : "Avistamiento",
-          name: r.name ?? "",
-          description: r.description,
-          dateTime: r.dateTime ?? r.date_time ?? "",
-          imageUrl: `${import.meta.env.VITE_API_URL}${r.imageUrl ?? r.image_url ?? ""}`,
-          size: r.size ?? r.approximate_size ?? "",
-          weightKg: r.weightKg ?? r.approximate_weight_kg ?? 0,
-          colors: r.colors ?? (r.color ? [r.color] : []),
-          location: "",
-          lat: r.lat ?? r.latitude ?? 0,
-          lng: r.lng ?? r.longitude ?? 0
-        }));
+        const mapped: Report[] = data.map((r: any) => {
+  const rawDate = r.dateTime ?? r.date_time ?? "";
+  let formattedDateTime = "";
+  if (rawDate) {
+    const date = new Date(rawDate);
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    const hours = String(date.getHours()).padStart(2, "0");
+    const minutes = String(date.getMinutes()).padStart(2, "0");
+    formattedDateTime = `${year}-${month}-${day} / ${hours}:${minutes}`;
+  }
+
+  return {
+    id: r.id,
+    type: r.type === "lost" ? "Perdida" : "Avistamiento",
+    name: r.name ?? "",
+    description: r.description,
+    dateTime: formattedDateTime,
+    imageUrl: `${import.meta.env.VITE_API_URL}${r.imageUrl ?? r.image_url ?? ""}`,
+    size: r.size ?? r.approximate_size ?? "",
+    weightKg: r.weightKg ?? r.approximate_weight_kg ?? 0,
+    colors: r.colors ?? (r.color ? [r.color] : []),
+    location: "",
+    lat: r.lat ?? r.latitude ?? 0,
+    lng: r.lng ?? r.longitude ?? 0
+  };
+});
         setReports(mapped);
       })
       .catch((error) => {

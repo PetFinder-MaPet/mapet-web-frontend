@@ -150,7 +150,7 @@ const LostPetReportForm: React.FC = () => {
    
 
       try {
-  const res = await fetch(`${import.meta.env.VITE_API_URL}/pet-reports`, {
+  const res = await fetch(`${import.meta.env.VITE_API_URL}/reports/create`, {
     method: "POST",
     body: form,
   });

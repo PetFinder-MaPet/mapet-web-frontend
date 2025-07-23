@@ -1,10 +1,11 @@
-import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import { MapContainer, TileLayer } from 'react-leaflet';
 import L from 'leaflet';
 import { useEffect, useState } from 'react';
 import { Report } from '../types/report';
 import { useNavigate } from 'react-router-dom';
+import ReportMarker from '@/components/ui/reportMarker';
 
-// Configuración para que los íconos se vean bien
+// Configuración para que los íconos se vean bien¿// Configuración de íconos
 delete (L.Icon.Default.prototype as any)._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
@@ -17,9 +18,10 @@ const MapView = () => {
   const [reports, setReports] = useState<Report[]>([]);
 
   useEffect(() => {
-    fetch(`${import.meta.env.VITE_API_URL}/pet-reports`)
+    fetch(`${import.meta.env.VITE_API_URL}/reports`)
       .then((res) => res.json())
       .then((data) => {
+              console.log("✅ Datos crudos:", data); // <-- Agrega esto
         const mapped: Report[] = data.map((r: any) => ({
           id: r.id,
           type: r.type === 'lost' ? 'Perdida' : 'Avistamiento',
@@ -35,9 +37,11 @@ const MapView = () => {
           weightKg: r.weightKg ?? r.approximate_weight_kg ?? 0,
           colors: r.colors ?? (r.color ? [r.color] : []),
           location: '',
-          lat: r.lat ?? r.latitude ?? 0,
-          lng: r.lng ?? r.longitude ?? 0,
+    lat: r.location?.latitude ?? 0,
+lng: r.location?.longitude ?? 0,
+
         }));
+         console.log("📍 Reportes mapeados:", mapped);
         setReports(mapped);
       })
       .catch((err) => console.error('❌ Error loading reports:', err));
@@ -59,23 +63,7 @@ const MapView = () => {
         />
 
         {reports.map((report: Report) => (
-          <Marker key={report.id} position={[report.lat, report.lng]}>
-            <Popup>
-              <div className="text-sm">
-                <p className="font-bold">
-                  {report.type === 'Perdida' ? `🐾 ${report.name}` : 'Avistamiento'}
-                </p>
-                <img
-                  src={report.imageUrl}
-                  className="w-full h-20 object-cover rounded-md mb-1"
-                  alt="Foto mascota"
-                />
-                <p className="text-xs">{report.description}</p>
-                <p className="text-xs text-gray-500 mt-1">{report.dateTime}</p>
-                <p className="text-xs text-gray-500">{report.location}</p>
-              </div>
-            </Popup>
-          </Marker>
+          <ReportMarker key={report.id} report={report} />        
         ))}
       </MapContainer>
 
